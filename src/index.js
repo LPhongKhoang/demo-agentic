@@ -1,78 +1,101 @@
 import readline from 'readline';
 import { run } from '@openai/agents';
-import { travelPlannerAgent } from './core/agents/travel-planner.agent.js';
-import { hookAgent } from './utils/hooks/index.js';
+import { masterAgent } from './core/agents/master.agent.js';
+import { logger } from './utils/logger.js';
 
-hookAgent(travelPlannerAgent);
+const COMMANDS = Object.freeze({
+  exit: '/exit',
+  history: '/history',
+  reset: '/reset',
+  help: '/help',
+});
 
-// Create readline interface for CLI interaction
+const HELP_TEXT = `
+Available commands:
+  /exit     — End the session
+  /history  — Print last 10 messages in conversation history
+  /reset    — Clear conversation history
+  /help     — Show this help message
+
+Otherwise just type anything — the assistant will route your request automatically.
+`.trim();
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
-  prompt: 'You:\n',
+  prompt: '\nYou> ',
 });
 
-// Store chat history
 const chatHistory = [];
+let isProcessing = false;
 
-console.log('🤖 Travel Planner Agent Chat');
-console.log('Tell me your destination, days, and style to get itinerary + budget. (Type "exit" or "quit" to end)\n');
+logger.logResponse('🤖 Multi-Agent Assistant is ready.', 'system');
+logger.logResponse('Specialist agents: Order Agent · Travel Planner Agent', 'system');
+logger.logResponse('Type /help to see available commands.\n', 'system');
 
-// Display the prompt
 rl.prompt();
 
-// Handle user input
+const handleCommand = (command) => {
+  switch (command) {
+    case COMMANDS.exit:
+      logger.logResponse(`Session ended. Total messages: ${chatHistory.length}`, 'system');
+      rl.close();
+      break;
+    case COMMANDS.history:
+      logger.logResponse(`Last ${Math.min(chatHistory.length, 10)} messages:`, 'system');
+      logger.debug('chat history', JSON.stringify(chatHistory.slice(-10), null, 2));
+      break;
+    case COMMANDS.reset:
+      chatHistory.length = 0;
+      logger.logResponse('Conversation history cleared.', 'system');
+      break;
+    case COMMANDS.help:
+      logger.logResponse(HELP_TEXT, 'system');
+      break;
+    default:
+      logger.logResponse('Unknown command. Type /help for the list of commands.', 'system');
+  }
+};
+
 rl.on('line', async (input) => {
   const userMessage = input.trim();
 
-  // Exit conditions
-  if (["exit", "quit"].includes(userMessage.toLowerCase())) {
-    console.log('\n👋 Goodbye!');
-    console.log(`\n📊 Total messages in history: ${chatHistory.length}`);
-    rl.close();
-    process.exit(0);
-  }
-
-  // Skip empty messages
   if (!userMessage) {
     rl.prompt();
     return;
   }
 
-  try {
-    // Add user message to chat history
-    chatHistory.push({
-      role: 'user',
-      content: userMessage,
-    });
-
-    // Send message to the travel planner agent with full chat history
-    console.log('\n🤖 Agent:');
-    
-    const result = await run(travelPlannerAgent, chatHistory);
-    
-    // Display the agent's response
-    console.log(result.finalOutput);
-    console.log();
-
-    // Add agent response to chat history
-    chatHistory.push({
-      role: 'assistant',
-      content: result.finalOutput,
-    });
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    console.log();
-    // Remove the last user message if there was an error
-    chatHistory.pop();
+  if (userMessage.startsWith('/')) {
+    handleCommand(userMessage);
+    if (userMessage === COMMANDS.exit) {
+      return;
+    }
+    rl.prompt();
+    return;
   }
 
-  // Show prompt again
-  rl.prompt();
+  if (isProcessing) {
+    logger.logResponse('Agent is processing your previous message, please wait…', 'system');
+    return;
+  }
+
+  isProcessing = true;
+  chatHistory.push({ role: 'user', content: userMessage });
+
+  try {
+    const result = await run(masterAgent, chatHistory);
+    chatHistory.push({ role: 'assistant', content: result.finalOutput });
+    logger.logResponse(result.finalOutput, 'assistant');
+  } catch (error) {
+    logger.logResponse(`Error: ${error.message}`, 'system');
+    chatHistory.pop();
+  } finally {
+    isProcessing = false;
+    rl.prompt();
+  }
 });
 
-// Handle readline close
 rl.on('close', () => {
-  console.log('\n👋 Goodbye!');
+  logger.logResponse('👋 Goodbye!', 'system');
   process.exit(0);
 });

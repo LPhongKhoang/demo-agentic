@@ -1,6 +1,6 @@
 // const gray = (text) => `\x1b[90m${text}\x1b[0m`;
 
-import { logger } from "../logger";
+import { logger } from "../logger.js";
 
 
 
@@ -16,6 +16,11 @@ export const hookAgent = (agent) => {
   agent.on('agent_end', (ctx, output) => {
     // console.log(gray(`[agent] produced:`), output);
     logger.debug(`[agent] produced:`, output);
+  });
+
+  agent.on('agent_handoff', (ctx, nextAgent) => {
+    // console.log(gray(`[${agent.name}] handing off to ${nextAgent.name}`));
+    logger.debug(`[${agent.name}] handing off to ${nextAgent.name}`);
   });
 
   agent.on('agent_tool_start', async (context, tool, { toolCall }) => {

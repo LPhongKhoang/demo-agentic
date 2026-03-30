@@ -1,7 +1,10 @@
 import { Agent, OpenAIChatCompletionsModel } from '@openai/agents';
-import { openAIGeminiClient } from '../ai-model/gemini.model.js';
-import { planTripItineraryTool } from '../tools/plan-trip-itinerary.tool.js';
-import { estimateTripBudgetTool } from '../tools/estimate-trip-budget.tool.js';
+import { openAIGeminiClient } from '../../ai-model/gemini.model.js';
+import {
+  planTripItineraryTool,
+  estimateTripBudgetTool
+} from './tools/index.js';
+import { hookAgent } from '../../../utils/hooks/index.js';
 
 export const travelPlannerAgent = new Agent({
   name: 'Travel Planner',
@@ -11,3 +14,5 @@ export const travelPlannerAgent = new Agent({
   tools: [planTripItineraryTool, estimateTripBudgetTool],
 });
 
+
+hookAgent(travelPlannerAgent);

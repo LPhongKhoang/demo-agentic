@@ -1,62 +1,62 @@
 
+
 # My Starter Agentic
 
-A minimal agentic CLI example demonstrating the use of `@openai/agents` with a Google Gemini-compatible OpenAI client. This project now provides a travel planning and budgeting assistant with a command-line chat interface that preserves conversation history.
+A minimal agentic CLI example demonstrating how to build small, tool-enabled agents using `@openai/agents` with a Gemini-compatible OpenAI client. The repository includes example agents and tools (travel planner, budgeting) and a simple CLI that preserves conversation history.
 
-**Quick Start**
+## Quick Start
 
-- **Install dependencies:**
+- Install dependencies:
 
-	```bash
-	npm install
-	```
+  ```bash
+  npm install
+  ```
 
-- **Add credentials:** create a `.env` file in the project root with your Gemini API key (see `src/configs/index.js`):
+- Add credentials: create a `.env` file in the project root with your Gemini API key (see `src/configs/index.js`):
 
-	```text
-	GEMINI_API_KEY=your_api_key_here
-	```
+  ```text
+  GEMINI_API_KEY=your_api_key_here
+  ```
 
-- **Run the CLI:**
+- Run the CLI:
 
-	```bash
-	npm run dev
-	```
+  ```bash
+  npm run dev
+  ```
 
-	Then type prompts like "Plan a 5-day trip to Tokyo for 2 people with a standard budget". Type `exit` or `quit` to end the session.
+  Then type prompts such as "Plan a 5-day trip to Tokyo for 2 people with a standard budget". Type `exit` or `quit` to end the session.
 
-**What this project contains**
+## Project Structure
 
-- **`src/index.js`**: CLI entrypoint — simple readline-based chat that sends the full chat history to the agent each turn.
-- **`src/core/agents/travel-planner.agent.js`**: Agent definition using `@openai/agents`, configured to use a Gemini-compatible OpenAI client and travel tools.
-- **`src/core/tools/plan-trip-itinerary.tool.js`**: Zod-validated tool that creates a day-by-day itinerary from destination, trip length, and travel style.
-- **`src/core/tools/estimate-trip-budget.tool.js`**: Zod-validated tool that estimates travel budget with category-level breakdown and contingency.
-- **`src/core/ai-model/gemini.model.js`**: Client setup for Gemini via the OpenAI-compatible base URL.
-- **`src/app/`**: Example scripts and experimental agents.
+- `src/index.js` — CLI entrypoint: a readline-based chat that sends the full `chatHistory` to the active agent each turn.
+- `src/core/agents/` — Agent definitions (examples: `travel-planner.agent.js`, `weather.agent.js`).
+- `src/core/tools/` — Zod-validated tool implementations (examples: itinerary planner, budget estimator, get-weather mock).
+- `src/core/ai-model/gemini.model.js` — Gemini/OpenAI client configuration used by agents.
+- `src/app/` — Example scripts and experimental agents.
 
-**Behavior & Features**
+## Features
 
-- Conversation context: the CLI stores chat messages in a `chatHistory` array and passes it to the agent every turn so the agent can answer follow-ups.
-- Tooling: travel itinerary and budgeting tools show how to register and validate tool parameters using Zod.
+- Conversation context: the CLI maintains a `chatHistory` array and provides it to agents so they can answer follow-up questions.
+- Tooling examples: demonstrates registering tools with Zod validation and using them from agents.
 
-**Development notes**
+## Development notes
 
-- The project uses ES modules (`type: "module"` in `package.json`).
-- To modify or add agents, follow the pattern in `src/core/agents/` and tools in `src/core/tools/`.
-- Linting is available via `npm run lint` (requires a configured ESLint environment).
+- This repo uses ES modules (`type: "module"` in `package.json`).
+- To add an agent: create a new file under `src/core/agents/` following the existing agent patterns.
+- To add a tool: create a new Zod-validated tool under `src/core/tools/` and register it with the agent.
 
-**Known limitations**
+## Known limitations
 
-- Travel tools use rule-based estimation and planning for demonstration. Replace or extend them with real APIs (flight prices, hotel providers, maps/POI data) for production usage.
-- There is no automated test suite included.
+- Many example tools use mocked or rule-based logic for demonstration; they are not production-ready.
+- No automated test suite is included by default.
 
-**Next steps you might want**
+## Suggested next steps
 
-- Integrate real travel data providers (flight/hotel/activity APIs) and secure API keys with environment variables.
-- Add unit tests for the tool and agent behaviors.
-- Add more agents/tools and an agent selector in the CLI.
+- Integrate real data providers (flight/hotel APIs, maps, weather) and secure keys with environment variables.
+- Add unit tests and CI linting hooks.
+- Add an agent-selection menu to the CLI to switch between multiple agents.
 
-**License**
+## License
 
 - MIT
 
