@@ -1,19 +1,22 @@
 import readline from 'readline';
 import { run } from '@openai/agents';
-import { weatherAgent } from './core/agents/weather.agent.js';
+import { travelPlannerAgent } from './core/agents/travel-planner.agent.js';
+import { hookAgent } from './utils/hooks/index.js';
+
+hookAgent(travelPlannerAgent);
 
 // Create readline interface for CLI interaction
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
-  prompt: 'You: ',
+  prompt: 'You:\n',
 });
 
 // Store chat history
 const chatHistory = [];
 
-console.log('🤖 Weather Agent Chat');
-console.log('Ask me anything about the weather! (Type "exit" or "quit" to end)\n');
+console.log('🤖 Travel Planner Agent Chat');
+console.log('Tell me your destination, days, and style to get itinerary + budget. (Type "exit" or "quit" to end)\n');
 
 // Display the prompt
 rl.prompt();
@@ -43,10 +46,10 @@ rl.on('line', async (input) => {
       content: userMessage,
     });
 
-    // Send message to the weather agent with full chat history
+    // Send message to the travel planner agent with full chat history
     console.log('\n🤖 Agent:');
     
-    const result = await run(weatherAgent, chatHistory);
+    const result = await run(travelPlannerAgent, chatHistory);
     
     // Display the agent's response
     console.log(result.finalOutput);
